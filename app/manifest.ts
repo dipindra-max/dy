@@ -1,0 +1,1 @@
+import {MetadataRoute} from 'next';export default function manifest():MetadataRoute.Manifest{return {name:'Dipindra Yadav — DY',short_name:'DY',description:'Dipindra Yadav personal website and technology blog',start_url:'/',display:'standalone',icons:[{src:'/images/profile.jpg',sizes:'1536x1536',type:'image/jpeg'}]}}
