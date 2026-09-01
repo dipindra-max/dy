@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: dy-personal-website
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SITE_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        value: dipindrayadav100@gmail.com
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: CONTACT_TO_EMAIL
+        value: dipindrayadav100@gmail.com
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: GOOGLE_SITE_VERIFICATION
+        sync: false
+      - key: GOOGLE_ANALYTICS_ID
+        sync: false
+      - key: ADSENSE_PUBLISHER_ID
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+
+  - type: cron
+    name: dy-publish-scheduled-posts
+    runtime: node
+    schedule: "*/5 * * * *"
+    buildCommand: npm ci
+    startCommand: 'curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/cron/publish"'
+    envVars:
+      - key: SITE_URL
+        sync: false
+      - key: CRON_SECRET
+        sync: false
