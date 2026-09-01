@@ -1,1 +1,71 @@
-import {prisma} from '@/lib/prisma';import Link from 'next/link';import {deleteProject} from '../actions';export default async function ProjectsAdmin(){const ps=await prisma.project.findMany({orderBy:{createdAt:'desc'}});return <><div style={{display:'flex',justifyContent:'space-between'}}><div><div className="eyebrow">Portfolio</div><h1>Projects</h1></div><Link className="btn primary" href="/admin/projects/new">+ Add project</Link></div><div className="grid">{ps.length?ps.map(p=><div className="card" key={p.id}><span className="pill">{p.status}</span><h3>{p.title}</h3><p className="muted">{p.description}</p><div className="socials"><Link className="btn" href={`/admin/projects/new?id=${p.id}`}>Edit</Link><form action={deleteProject}><input type="hidden" name="id" value={p.id}/><button className="btn danger">Delete</button></form></div></div>):<div className="empty">No projects yet.</div>}</div></>}
+import type { Project } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import Link from "next/link";
+import { deleteProject } from "../actions";
+
+export default async function ProjectsAdmin() {
+  const ps: Project[] = await prisma.project.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <div>
+          <div className="eyebrow">Portfolio</div>
+          <h1>Projects</h1>
+        </div>
+
+        <Link className="btn primary" href="/admin/projects/new">
+          + Add project
+        </Link>
+      </div>
+
+      <div className="grid">
+        {ps.length ? (
+          ps.map((p: Project) => (
+            <div className="card" key={p.id}>
+              <span className="pill">{p.status}</span>
+
+              <h3>{p.title}</h3>
+
+              <p className="muted">{p.description}</p>
+
+              <div className="socials">
+                <Link
+                  className="btn"
+                  href={`/admin/projects/new?id=${p.id}`}
+                >
+                  Edit
+                </Link>
+
+                <form action={deleteProject}>
+                  <input
+                    type="hidden"
+                    name="id"
+                    value={p.id}
+                  />
+
+                  <button className="btn danger">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="empty">
+            No projects yet.
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
