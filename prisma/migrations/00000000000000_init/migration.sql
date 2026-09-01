@@ -1,0 +1,55 @@
+-- Generated initial migration. Run `npx prisma migrate dev` to regenerate if the schema changes.
+CREATE TYPE "UserRole" AS ENUM ('ADMIN');
+CREATE TYPE "PostStatus" AS ENUM ('DRAFT','PUBLISHED','SCHEDULED','ARCHIVED');
+CREATE TYPE "CommentStatus" AS ENUM ('PENDING','APPROVED','REJECTED','SPAM');
+CREATE TYPE "MessageStatus" AS ENUM ('UNREAD','READ','ARCHIVED');
+CREATE TYPE "ProjectStatus" AS ENUM ('DRAFT','PUBLISHED','ARCHIVED');
+CREATE TYPE "ReactionType" AS ENUM ('LIKE','HELPFUL','INTERESTING','INFORMATIVE');
+
+CREATE TABLE "users" ("id" TEXT NOT NULL,"email" TEXT NOT NULL,"password_hash" TEXT NOT NULL,"name" TEXT NOT NULL,"role" "UserRole" NOT NULL DEFAULT 'ADMIN',"avatar_url" TEXT,"last_login_at" TIMESTAMP(3),"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updated_at" TIMESTAMP(3) NOT NULL,CONSTRAINT "users_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "sessions" ("id" TEXT NOT NULL,"token_hash" TEXT NOT NULL,"user_id" TEXT NOT NULL,"expires_at" TIMESTAMP(3) NOT NULL,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "sessions_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "categories" ("id" TEXT NOT NULL,"name" TEXT NOT NULL,"slug" TEXT NOT NULL,"description" TEXT,"image_url" TEXT,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updated_at" TIMESTAMP(3) NOT NULL,CONSTRAINT "categories_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "tags" ("id" TEXT NOT NULL,"name" TEXT NOT NULL,"slug" TEXT NOT NULL,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "tags_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "posts" ("id" TEXT NOT NULL,"author_id" TEXT NOT NULL,"category_id" TEXT NOT NULL,"title" TEXT NOT NULL,"slug" TEXT NOT NULL,"excerpt" TEXT,"content" TEXT NOT NULL,"featured_image_url" TEXT,"status" "PostStatus" NOT NULL DEFAULT 'DRAFT',"is_featured" BOOLEAN NOT NULL DEFAULT false,"published_at" TIMESTAMP(3),"scheduled_at" TIMESTAMP(3),"reading_time" INTEGER NOT NULL DEFAULT 1,"view_count" INTEGER NOT NULL DEFAULT 0,"seo_title" TEXT,"seo_description" TEXT,"canonical_url" TEXT,"og_title" TEXT,"og_description" TEXT,"og_image_url" TEXT,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updated_at" TIMESTAMP(3) NOT NULL,CONSTRAINT "posts_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "post_tags" ("post_id" TEXT NOT NULL,"tag_id" TEXT NOT NULL,CONSTRAINT "post_tags_pkey" PRIMARY KEY ("post_id","tag_id"));
+CREATE TABLE "comments" ("id" TEXT NOT NULL,"post_id" TEXT NOT NULL,"author_id" TEXT,"name" TEXT NOT NULL,"email" TEXT NOT NULL,"content" TEXT NOT NULL,"status" "CommentStatus" NOT NULL DEFAULT 'PENDING',"ip_hash" TEXT,"user_agent" TEXT,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updated_at" TIMESTAMP(3) NOT NULL,CONSTRAINT "comments_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "reactions" ("id" TEXT NOT NULL,"post_id" TEXT NOT NULL,"visitor_hash" TEXT NOT NULL,"reaction_type" "ReactionType" NOT NULL,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "reactions_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "messages" ("id" TEXT NOT NULL,"name" TEXT NOT NULL,"email" TEXT NOT NULL,"subject" TEXT NOT NULL,"message" TEXT NOT NULL,"phone" TEXT,"status" "MessageStatus" NOT NULL DEFAULT 'UNREAD',"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"read_at" TIMESTAMP(3),CONSTRAINT "messages_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "projects" ("id" TEXT NOT NULL,"title" TEXT NOT NULL,"slug" TEXT NOT NULL,"description" TEXT NOT NULL,"content" TEXT,"featured_image_url" TEXT,"demo_url" TEXT,"github_url" TEXT,"technologies" TEXT[] NOT NULL,"is_featured" BOOLEAN NOT NULL DEFAULT false,"sort_order" INTEGER NOT NULL DEFAULT 0,"status" "ProjectStatus" NOT NULL DEFAULT 'PUBLISHED',"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"updated_at" TIMESTAMP(3) NOT NULL,CONSTRAINT "projects_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "media" ("id" TEXT NOT NULL,"filename" TEXT NOT NULL,"original_name" TEXT NOT NULL,"mime_type" TEXT NOT NULL,"size" INTEGER NOT NULL,"url" TEXT NOT NULL,"alt_text" TEXT,"width" INTEGER,"height" INTEGER,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "media_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "site_settings" ("id" TEXT NOT NULL DEFAULT 'main',"site_name" TEXT NOT NULL DEFAULT 'Dipindra Yadav',"display_name" TEXT NOT NULL DEFAULT 'DY',"tagline" TEXT NOT NULL DEFAULT 'Building with Technology, AI & Code.',"description" TEXT NOT NULL DEFAULT 'Dipindra Yadav — student, developer and technology creator.',"email" TEXT NOT NULL DEFAULT 'dipindrayadav100@gmail.com',"phone" TEXT NOT NULL DEFAULT '+977 9707425277',"whatsapp" TEXT NOT NULL DEFAULT '9707425277',"facebook" TEXT,"instagram" TEXT,"youtube" TEXT,"tiktok" TEXT,"github" TEXT,"linkedin" TEXT,"profile_image" TEXT NOT NULL DEFAULT '/images/profile.jpg',"favicon_url" TEXT,"hero_title" TEXT NOT NULL DEFAULT 'Hi, I''m DY',"hero_subtitle" TEXT NOT NULL DEFAULT 'Dipindra Yadav',"hero_description" TEXT NOT NULL DEFAULT 'A Grade 10 student exploring web development, app development, SEO, AI and cybersecurity.',"about_text" TEXT NOT NULL DEFAULT 'I''m a student and technology enthusiast learning by building real projects and sharing what I learn.',"google_verification" TEXT,"google_analytics_id" TEXT,"adsense_publisher_id" TEXT,"updated_at" TIMESTAMP(3) NOT NULL,CONSTRAINT "site_settings_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "analytics_events" ("id" TEXT NOT NULL,"event_type" TEXT NOT NULL,"post_id" TEXT,"page_path" TEXT,"visitor_hash" TEXT,"referrer" TEXT,"country" TEXT,"device_type" TEXT,"created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT "analytics_events_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "newsletter_subscribers" ("id" TEXT NOT NULL,"email" TEXT NOT NULL,"status" TEXT NOT NULL DEFAULT 'ACTIVE',"subscribed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"unsubscribed_at" TIMESTAMP(3),CONSTRAINT "newsletter_subscribers_pkey" PRIMARY KEY ("id"));
+
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX "sessions_token_hash_key" ON "sessions"("token_hash");
+CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
+CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
+CREATE UNIQUE INDEX "tags_name_key" ON "tags"("name");
+CREATE UNIQUE INDEX "tags_slug_key" ON "tags"("slug");
+CREATE UNIQUE INDEX "posts_slug_key" ON "posts"("slug");
+CREATE UNIQUE INDEX "reactions_post_id_visitor_hash_reaction_type_key" ON "reactions"("post_id","visitor_hash","reaction_type");
+CREATE UNIQUE INDEX "projects_slug_key" ON "projects"("slug");
+CREATE UNIQUE INDEX "newsletter_subscribers_email_key" ON "newsletter_subscribers"("email");
+CREATE INDEX "sessions_user_id_idx" ON "sessions"("user_id");
+CREATE INDEX "sessions_expires_at_idx" ON "sessions"("expires_at");
+CREATE INDEX "posts_status_published_at_idx" ON "posts"("status","published_at");
+CREATE INDEX "posts_category_id_idx" ON "posts"("category_id");
+CREATE INDEX "posts_is_featured_published_at_idx" ON "posts"("is_featured","published_at");
+CREATE INDEX "post_tags_tag_id_idx" ON "post_tags"("tag_id");
+CREATE INDEX "comments_post_id_status_idx" ON "comments"("post_id","status");
+CREATE INDEX "reactions_post_id_reaction_type_idx" ON "reactions"("post_id","reaction_type");
+CREATE INDEX "messages_status_created_at_idx" ON "messages"("status","created_at");
+CREATE INDEX "projects_status_is_featured_sort_order_idx" ON "projects"("status","is_featured","sort_order");
+CREATE INDEX "analytics_events_event_type_created_at_idx" ON "analytics_events"("event_type","created_at");
+CREATE INDEX "analytics_events_post_id_created_at_idx" ON "analytics_events"("post_id","created_at");
+
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "posts" ADD CONSTRAINT "posts_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "posts" ADD CONSTRAINT "posts_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "post_tags" ADD CONSTRAINT "post_tags_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "post_tags" ADD CONSTRAINT "post_tags_tag_id_fkey" FOREIGN KEY ("tag_id") REFERENCES "tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "comments" ADD CONSTRAINT "comments_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "analytics_events" ADD CONSTRAINT "analytics_events_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "posts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
