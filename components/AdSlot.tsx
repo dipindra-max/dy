@@ -1,0 +1,2 @@
+import Script from 'next/script';
+export default function AdSlot(){const id=process.env.ADSENSE_PUBLISHER_ID;if(!id)return null;return <><Script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${id}`} crossOrigin="anonymous"/><div style={{minHeight:90,display:'grid',placeItems:'center',margin:'28px 0',border:'1px dashed var(--line)',borderRadius:16}} className="muted">Advertisement slot</div></>}

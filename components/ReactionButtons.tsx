@@ -1,0 +1,3 @@
+'use client';
+import {useState} from 'react';
+export default function ReactionButtons({slug,initial}:{slug:string,initial:any}){const [counts,setCounts]=useState(initial);async function react(type:string){const r=await fetch(`/api/posts/${slug}/reactions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});const j=await r.json();if(r.ok)setCounts(j.counts)}return <div className="socials">{[['LIKE','❤️'],['HELPFUL','👍'],['INTERESTING','🔥'],['INFORMATIVE','💡']].map(([t,e])=><button className="btn" key={t} onClick={()=>react(t)}>{e} {counts[t]}</button>)}</div>}
