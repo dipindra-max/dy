@@ -1,2 +1,144 @@
-import Image from 'next/image';import {prisma} from '@/lib/prisma';export const metadata={title:'About Me'};
-export default async function About(){const s=await prisma.siteSetting.findUnique({where:{id:'main'}});const skills=['App Development','Web Development','SEO','AI & Technology','Programming','Content Creation','Cybersecurity Learning'];return <section className="section"><div className="container"><div style={{display:'grid',gridTemplateColumns:'.6fr 1.4fr',gap:45,alignItems:'start'}}><div className="card"><Image src={s?.profileImage||'/images/profile.jpg'} alt="Dipindra Yadav" width={600} height={600} style={{width:'100%',height:'auto',borderRadius:18}}/><h3>Dipindra Yadav</h3><p className="muted">Grade 10 student • Technology enthusiast</p></div><div><div className="eyebrow">About me</div><h1 className="title" style={{fontSize:'3.4rem'}}>Curious about how technology works—and how to build with it.</h1><p className="prose">{s?.aboutText}</p><p className="prose">I’m currently studying in Grade 10 and developing practical skills in app development, web development, SEO, programming and AI. I enjoy experimenting with projects, learning new tools, creating digital content and understanding cybersecurity.</p><h2>Skills & interests</h2><div className="taglist">{skills.map(x=><span className="pill" key={x}>{x}</span>)}</div><h2>My direction</h2><p className="prose">My long-term goal is to become a strong cybersecurity expert while continuing to build useful applications, websites and educational technology content.</p></div></div></div></section>}
+import Image from "next/image";
+
+export const metadata = {
+  title: "About Me | Dipindra Yadav",
+  description:
+    "Learn more about Dipindra Yadav, a Grade 10 student interested in technology, AI, programming, web development and cybersecurity.",
+};
+
+const skills = [
+  "App Development",
+  "Web Development",
+  "SEO",
+  "Programming",
+  "Artificial Intelligence",
+  "Cybersecurity",
+  "Content Creation",
+];
+
+const interests = [
+  "Technology",
+  "Artificial Intelligence",
+  "Programming",
+  "Web Development",
+  "Cybersecurity",
+  "SEO",
+  "Photography",
+  "Content Creation",
+  "Learning New Technologies",
+];
+
+export default function AboutPage() {
+  return (
+    <main>
+      <section className="section">
+        <div className="container">
+          <div className="eyebrow">About Me</div>
+
+          <div className="grid" style={{ marginTop: 30 }}>
+            <div className="card">
+              <Image
+                src="/images/profile.jpg"
+                alt="Dipindra Yadav"
+                width={500}
+                height={500}
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  borderRadius: 18,
+                }}
+              />
+            </div>
+
+            <div>
+              <h1>Hi, I'm Dipindra Yadav.</h1>
+
+              <p className="lead">
+                I'm a Grade 10 student from Nepal with a strong interest in
+                technology, programming, web development, artificial
+                intelligence and cybersecurity.
+              </p>
+
+              <p>
+                I enjoy learning how modern technologies work and turning
+                ideas into useful websites, applications and digital
+                projects. I'm also interested in SEO and creating useful
+                technology content.
+              </p>
+
+              <p>
+                My long-term goal is to become a skilled cybersecurity expert
+                while continuing to learn about software development,
+                artificial intelligence and emerging technologies.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="eyebrow">Education</div>
+
+          <h2>Currently Studying</h2>
+
+          <div className="card">
+            <h3>Grade 10</h3>
+            <p>
+              Currently studying in Grade 10 and building practical skills
+              alongside my academic education.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="eyebrow">Skills</div>
+
+          <h2>What I Work With</h2>
+
+          <div className="grid">
+            {skills.map((skill) => (
+              <div className="card" key={skill}>
+                <h3>{skill}</h3>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="eyebrow">Interests</div>
+
+          <h2>Things I Enjoy</h2>
+
+          <div className="tags">
+            {interests.map((interest) => (
+              <span className="pill" key={interest}>
+                {interest}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="card">
+            <div className="eyebrow">My Goal</div>
+
+            <h2>Building Towards Cybersecurity</h2>
+
+            <p>
+              I want to continue developing my knowledge of programming,
+              networking, web technologies and cybersecurity and eventually
+              become a strong cybersecurity professional.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
