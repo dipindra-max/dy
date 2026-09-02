@@ -7,12 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole { ADMIN }
-enum PostStatus { DRAFT PUBLISHED SCHEDULED ARCHIVED }
-enum CommentStatus { PENDING APPROVED REJECTED SPAM }
-enum MessageStatus { UNREAD READ ARCHIVED }
-enum ProjectStatus { DRAFT PUBLISHED ARCHIVED }
-enum ReactionType { LIKE HELPFUL INTERESTING INFORMATIVE }
+enum UserRole {
+  ADMIN
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  CLAP
+  INSIGHTFUL
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
 
 model User {
   id           String    @id @default(cuid())
@@ -24,6 +52,7 @@ model User {
   lastLoginAt  DateTime? @map("last_login_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
+
   posts        Post[]
   sessions     Session[]
   comments     Comment[] @relation("CommentAuthor")
@@ -37,10 +66,46 @@ model Session {
   userId    String   @map("user_id")
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
+}
+
+model Post {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String     @unique
+  excerpt        String?
+  content        String
+  featuredImage  String?    @map("featured_image")
+  status         PostStatus @default(DRAFT)
+  publishedAt    DateTime?  @map("published_at")
+  scheduledAt    DateTime?  @map("scheduled_at")
+  readingTime    Int?       @map("reading_time")
+  viewCount      Int        @default(0) @map("view_count")
+  featured       Boolean    @default(false)
+  seoTitle       String?    @map("seo_title")
+  seoDescription String?    @map("seo_description")
+  canonicalUrl   String?    @map("canonical_url")
+  authorId       String     @map("author_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categories Category[]
+  tags       Tag[]
+  comments  Comment[]
+  reactions Reaction[]
+  media     Media[]
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([featured])
+  @@index([authorId])
+  @@map("posts")
 }
 
 model Category {
@@ -48,192 +113,146 @@ model Category {
   name        String   @unique
   slug        String   @unique
   description String?
-  imageUrl    String?  @map("image_url")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  posts       Post[]
+
+  posts Post[]
+
   @@map("categories")
 }
 
 model Tag {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  slug      String     @unique
-  posts     PostTag[]
-  createdAt DateTime   @default(now()) @map("created_at")
+  id        String   @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  posts Post[]
+
   @@map("tags")
 }
 
-model Post {
-  id               String        @id @default(cuid())
-  authorId         String        @map("author_id")
-  categoryId       String        @map("category_id")
-  title            String
-  slug             String        @unique
-  excerpt          String?
-  content          String
-  featuredImageUrl String?       @map("featured_image_url")
-  status           PostStatus    @default(DRAFT)
-  isFeatured       Boolean       @default(false) @map("is_featured")
-  publishedAt      DateTime?     @map("published_at")
-  scheduledAt      DateTime?     @map("scheduled_at")
-  readingTime      Int           @default(1) @map("reading_time")
-  viewCount        Int           @default(0) @map("view_count")
-  seoTitle         String?       @map("seo_title")
-  seoDescription   String?       @map("seo_description")
-  canonicalUrl     String?       @map("canonical_url")
-  ogTitle          String?       @map("og_title")
-  ogDescription    String?       @map("og_description")
-  ogImageUrl       String?       @map("og_image_url")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
-  author           User          @relation(fields: [authorId], references: [id])
-  category         Category      @relation(fields: [categoryId], references: [id])
-  tags             PostTag[]
-  comments         Comment[]
-  reactions        Reaction[]
-  analytics        AnalyticsEvent[]
-  @@index([status, publishedAt])
-  @@index([categoryId])
-  @@index([isFeatured, publishedAt])
-  @@map("posts")
-}
-
-model PostTag {
-  postId String @map("post_id")
-  tagId  String @map("tag_id")
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  @@id([postId, tagId])
-  @@map("post_tags")
-}
-
 model Comment {
-  id          String        @id @default(cuid())
-  postId      String        @map("post_id")
-  authorId    String?       @map("author_id")
-  name        String
-  email       String
-  content     String
-  status      CommentStatus  @default(PENDING)
-  ipHash      String?       @map("ip_hash")
-  userAgent   String?       @map("user_agent")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-  post        Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author      User?         @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  @@index([postId, status])
+  id        String        @id @default(cuid())
+  content   String
+  status    CommentStatus @default(PENDING)
+  name      String
+  email     String
+  website   String?
+  postId    String        @map("post_id")
+  authorId  String?       @map("author_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User? @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([status])
+  @@index([authorId])
   @@map("comments")
 }
 
 model Reaction {
-  id           String       @id @default(cuid())
-  postId       String       @map("post_id")
-  visitorHash  String       @map("visitor_hash")
-  reactionType ReactionType @map("reaction_type")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  post         Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  @@unique([postId, visitorHash, reactionType])
-  @@index([postId, reactionType])
+  id        String       @id @default(cuid())
+  type      ReactionType
+  postId    String       @map("post_id")
+  visitorId String       @map("visitor_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, visitorId, type])
+  @@index([postId])
   @@map("reactions")
 }
 
 model Message {
-  id        String        @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
   email     String
-  subject   String
+  subject   String?
   message   String
-  phone     String?
-  status    MessageStatus @default(UNREAD)
-  createdAt DateTime      @default(now()) @map("created_at")
-  readAt    DateTime?     @map("read_at")
-  @@index([status, createdAt])
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([read])
+  @@index([createdAt])
   @@map("messages")
 }
 
 model Project {
-  id               String        @id @default(cuid())
-  title            String
-  slug             String        @unique
-  description      String
-  content          String?
-  featuredImageUrl String?       @map("featured_image_url")
-  demoUrl          String?       @map("demo_url")
-  githubUrl        String?       @map("github_url")
-  technologies     String[]
-  isFeatured       Boolean       @default(false) @map("is_featured")
-  sortOrder        Int           @default(0) @map("sort_order")
-  status           ProjectStatus @default(PUBLISHED)
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
-  @@index([status, isFeatured, sortOrder])
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  content     String?
+  image       String?
+  url         String?
+  githubUrl   String?       @map("github_url")
+  status      ProjectStatus  @default(ACTIVE)
+  featured    Boolean       @default(false)
+  sortOrder   Int           @default(0) @map("sort_order")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([featured])
+  @@index([sortOrder])
   @@map("projects")
 }
 
-model Media {
-  id           String   @id @default(cuid())
-  filename     String
-  originalName String   @map("original_name")
-  mimeType     String   @map("mime_type")
-  size         Int
-  url          String
-  altText      String?  @map("alt_text")
-  width        Int?
-  height       Int?
-  createdAt    DateTime @default(now()) @map("created_at")
-  @@map("media")
-}
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-model SiteSettings {
-  id                     String   @id @default("main")
-  siteName               String   @default("Dipindra Yadav") @map("site_name")
-  displayName            String   @default("DY") @map("display_name")
-  tagline                String   @default("Building with Technology, AI & Code.")
-  description            String   @default("Dipindra Yadav — student, developer and technology creator.")
-  email                  String   @default("dipindrayadav100@gmail.com")
-  phone                  String   @default("+977 9707425277")
-  whatsapp               String   @default("9707425277")
-  facebook               String?
-  instagram              String?
-  youtube                String?
-  tiktok                 String?
-  github                 String?
-  linkedin               String?
-  profileImage           String   @default("/images/profile.jpg") @map("profile_image")
-  faviconUrl             String?  @map("favicon_url")
-  heroTitle              String   @default("Hi, I'm DY") @map("hero_title")
-  heroSubtitle           String   @default("Dipindra Yadav") @map("hero_subtitle")
-  heroDescription       String   @default("A Grade 10 student exploring web development, app development, SEO, AI and cybersecurity.") @map("hero_description")
-  aboutText              String   @default("I'm a student and technology enthusiast learning by building real projects and sharing what I learn.") @map("about_text")
-  googleVerification     String?  @map("google_verification")
-  googleAnalyticsId      String?  @map("google_analytics_id")
-  adsensePublisherId     String?  @map("adsense_publisher_id")
-  updatedAt              DateTime @updatedAt @map("updated_at")
   @@map("site_settings")
 }
 
+model Media {
+  id        String    @id @default(cuid())
+  filename  String
+  url       String
+  type      MediaType
+  mimeType  String?   @map("mime_type")
+  size      Int?
+  altText   String?   @map("alt_text")
+  postId    String?   @map("post_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  post Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([type])
+  @@map("media")
+}
+
 model AnalyticsEvent {
-  id           String   @id @default(cuid())
-  eventType    String   @map("event_type")
-  postId       String?  @map("post_id")
-  pagePath     String?  @map("page_path")
-  visitorHash  String?  @map("visitor_hash")
-  referrer     String?
-  country      String?
-  deviceType   String?  @map("device_type")
-  createdAt    DateTime @default(now()) @map("created_at")
-  post         Post?    @relation(fields: [postId], references: [id], onDelete: SetNull)
-  @@index([eventType, createdAt])
-  @@index([postId, createdAt])
+  id        String   @id @default(cuid())
+  eventType String   @map("event_type")
+  path      String?
+  postId    String?  @map("post_id")
+  visitorId String?  @map("visitor_id")
+  metadata  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([postId])
+  @@index([createdAt])
   @@map("analytics_events")
 }
 
 model NewsletterSubscriber {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  status         String    @default("ACTIVE")
-  subscribedAt   DateTime  @default(now()) @map("subscribed_at")
-  unsubscribedAt DateTime? @map("unsubscribed_at")
+  id          String   @id @default(cuid())
+  email       String   @unique
+  subscribed  Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
   @@map("newsletter_subscribers")
 }
