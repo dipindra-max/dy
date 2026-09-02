@@ -4,7 +4,21 @@ export async function deletePost(form:FormData){await requireAdmin();await prism
 export async function saveProject(form:FormData){await requireAdmin();const id=String(form.get('id')||'');const title=String(form.get('title')||'').trim();let slug=slugify(String(form.get('slug')||title));const data:any={title,slug,description:String(form.get('description')||''),content:String(form.get('content')||'')||null,featuredImageUrl:String(form.get('featuredImageUrl')||'')||null,demoUrl:String(form.get('demoUrl')||'')||null,githubUrl:String(form.get('githubUrl')||'')||null,technologies:String(form.get('technologies')||'').split(',').map(s=>s.trim()).filter(Boolean),isFeatured:form.get('isFeatured')==='on',sortOrder:Number(form.get('sortOrder')||0),status:String(form.get('status')||'PUBLISHED') as any};if(id)await prisma.project.update({where:{id},data});else await prisma.project.create({data});redirect('/admin/projects')}
 export async function deleteProject(form:FormData){await requireAdmin();await prisma.project.delete({where:{id:String(form.get('id'))}});redirect('/admin/projects')}
 export async function moderateComment(form:FormData){await requireAdmin();await prisma.comment.update({where:{id:String(form.get('id'))},data:{status:String(form.get('status')) as any}});redirect('/admin/comments')}
-export async function markMessage(form:FormData){await requireAdmin();await prisma.message.update({where:{id:String(form.get('id'))},data:{status:String(form.get('status')) as any,readAt:String(form.get('status'))==='READ'?new Date():null}});redirect('/admin/messages')}
+export async export async function markMessage(form: FormData) {
+  await requireAdmin();
+
+  const id = String(form.get("id") || "");
+  const status = String(form.get("status") || "UNREAD");
+
+  await prisma.message.update({
+    where: { id },
+    data: {
+      read: status === "READ",
+    },
+  });
+
+  redirect("/admin/messages");
+}
 export async function addCategory(form:FormData){await requireAdmin();const name=String(form.get('name')||'').trim();if(name)await prisma.category.create({data:{name,slug:slugify(name)}});redirect('/admin/categories')}
 export async function deleteCategory(form:FormData){await requireAdmin();try{await prisma.category.delete({where:{id:String(form.get('id'))}})}catch{}redirect('/admin/categories')}
 export async function saveSettings(form:FormData){await requireAdmin();const fields=['siteName','displayName','tagline','description','email','phone','whatsapp','facebook','instagram','youtube','tiktok','github','linkedin','profileImage','heroTitle','heroSubtitle','heroDescription','aboutText','googleVerification','googleAnalyticsId','adsensePublisherId'];const data:any={};for(const f of fields)data[f]=String(form.get(f)||'')||null;data.siteName=data.siteName||'Dipindra Yadav';data.displayName=data.displayName||'DY';data.tagline=data.tagline||'Building with Technology, AI & Code.';data.description=data.description||'Dipindra Yadav — student, developer and technology creator.';data.email=data.email||'dipindrayadav100@gmail.com';data.phone=data.phone||'+977 9707425277';data.whatsapp=data.whatsapp||'9707425277';data.profileImage=data.profileImage||'/images/profile.jpg';data.heroTitle=data.heroTitle||"Hi, I'm DY";data.heroSubtitle=data.heroSubtitle||'Dipindra Yadav';data.heroDescription=data.heroDescription||'A Grade 10 student exploring web development, app development, SEO, AI and cybersecurity.';data.aboutText=data.aboutText||'I’m a student and technology enthusiast learning by building real projects and sharing what I learn.';await prisma.siteSettings.upsert({where:{id:'main'},update:data,create:{id:'main',...data}});redirect('/admin/settings')}
