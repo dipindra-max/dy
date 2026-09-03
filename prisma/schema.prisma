@@ -207,11 +207,30 @@ model Project {
 }
 
 model SiteSetting {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(cuid())
+  siteName           String?
+  displayName        String?
+  tagline            String?
+  description        String?
+  email              String?
+  phone              String?
+  whatsapp           String?
+  facebook           String?
+  instagram          String?
+  youtube            String?
+  tiktok             String?
+  github             String?
+  linkedin           String?
+  profileImage       String?
+  heroTitle          String?
+  heroSubtitle       String?
+  heroDescription    String?
+  aboutText          String?
+  googleVerification String?
+  googleAnalyticsId  String?
+  adsensePublisherId String?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
 }
