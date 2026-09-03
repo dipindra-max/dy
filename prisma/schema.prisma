@@ -91,12 +91,12 @@ model Post {
   seoDescription String?    @map("seo_description")
   canonicalUrl   String?    @map("canonical_url")
   authorId       String     @map("author_id")
-  categoryId     String     @map("category_id")
+  categoryId     String?    @map("category_id")
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
   author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  category  Category   @relation(fields: [categoryId], references: [id])
+  category  Category?  @relation(fields: [categoryId], references: [id])
   tags      Tag[]
   comments  Comment[]
   reactions Reaction[]
@@ -105,4 +105,156 @@ model Post {
   @@index([status])
   @@index([publishedAt])
   @@index([featured])
-  @@ind
+  @@index([authorId])
+  @@index([categoryId])
+  @@map("posts")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  posts Post[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  posts Post[]
+
+  @@map("tags")
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  content   String
+  status    CommentStatus @default(PENDING)
+  name      String
+  email     String
+  website   String?
+  postId    String        @map("post_id")
+  authorId  String?       @map("author_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User? @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([status])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model Reaction {
+  id        String       @id @default(cuid())
+  type      ReactionType
+  postId    String       @map("post_id")
+  visitorId String       @map("visitor_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, visitorId, type])
+  @@index([postId])
+  @@map("reactions")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([read])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  description String
+  content     String?
+  image       String?
+  url         String?
+  githubUrl   String?       @map("github_url")
+  status      ProjectStatus @default(ACTIVE)
+  featured    Boolean       @default(false)
+  sortOrder   Int           @default(0) @map("sort_order")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([featured])
+  @@index([sortOrder])
+  @@map("projects")
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  filename  String
+  url       String
+  type      MediaType
+  mimeType  String?   @map("mime_type")
+  size      Int?
+  altText   String?   @map("alt_text")
+  postId    String?   @map("post_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  post Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([type])
+  @@map("media")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  eventType String   @map("event_type")
+  path      String?
+  postId    String?  @map("post_id")
+  visitorId String?  @map("visitor_id")
+  metadata  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([postId])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
+model NewsletterSubscriber {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  subscribed Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("newsletter_subscribers")
+}
