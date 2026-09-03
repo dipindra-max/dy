@@ -90,6 +90,9 @@ model Post {
   seoTitle       String?    @map("seo_title")
   seoDescription String?    @map("seo_description")
   canonicalUrl   String?    @map("canonical_url")
+  ogTitle        String?    @map("og_title")
+  ogDescription  String?    @map("og_description")
+  ogImageUrl     String?    @map("og_image_url")
   authorId       String     @map("author_id")
   categoryId     String?    @map("category_id")
   createdAt      DateTime   @default(now()) @map("created_at")
@@ -109,7 +112,6 @@ model Post {
   @@index([categoryId])
   @@map("posts")
 }
-
 model Category {
   id          String   @id @default(cuid())
   name        String   @unique
